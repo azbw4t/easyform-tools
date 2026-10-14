@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Free browser-based photo resize, photo compression, and image-to-PDF tools.">
+<title>EasyForm Tools — Photo & PDF Helper</title>
+<style>
+:root{--ink:#18212f;--muted:#5d6878;--line:#e1e7ef;--bg:#f5f7fb;--brand:#3659d9;--brand2:#203da9;--card:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:#fff;border-bottom:1px solid var(--line);padding:20px 16px} .head{max-width:980px;margin:auto}
+h1{font-size:clamp(1.6rem,5vw,2.25rem);line-height:1.15;margin:0 0 8px}h2{font-size:1.25rem;margin:0 0 12px}
+p{margin:6px 0;color:var(--muted)}main{max-width:980px;margin:22px auto;padding:0 14px 40px}
+.notice{background:#edf2ff;border:1px solid #d7e1ff;border-radius:12px;padding:12px 14px;margin-bottom:16px;color:#263a7a}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 14px;font-weight:650}
+.tab.active{background:var(--brand);border-color:var(--brand);color:#fff}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 4px 18px #1c2a4410}
+label{display:block;font-weight:650;margin:12px 0 5px}input,select{font:inherit;width:100%;border:1px solid #cbd4e1;border-radius:9px;padding:10px;background:#fff;color:var(--ink)}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.btn{border:0;border-radius:10px;background:var(--brand);color:white;font:inherit;font-weight:700;padding:11px 15px;margin-top:14px;cursor:pointer}.btn:hover{background:var(--brand2)}.btn.secondary{background:#edf1fa;color:#23345f}.btn:disabled{opacity:.5;cursor:not-allowed}
+.preview{display:block;max-width:100%;max-height:320px;margin:14px auto 0;border-radius:8px;object-fit:contain}.status{padding:10px 12px;background:#f0f7f2;border-radius:9px;margin-top:12px;white-space:pre-wrap;color:#1f5935}.small{font-size:.9rem}.hidden{display:none!important}.filelist{padding-left:20px;color:var(--muted)}footer{text-align:center;padding:22px 14px;color:var(--muted);font-size:.9rem}
+@media(max-width:600px){.row{grid-template-columns:1fr}.panel{padding:14px}.tab{flex:1}}
+</style>
+</head>
+<body>
+<header><div class="head"><h1>EasyForm Tools</h1><p>Free photo resize, photo compression and image-to-PDF tools.</p></div></header>
+<main>
+<div class="notice"><strong>Privacy:</strong> Your selected images are processed in this browser and are not uploaded to our server. Avoid using public/shared devices for sensitive documents.</div>
+<div class="tabs" role="tablist">
+<button class="tab active" data-tab="photo" role="tab" aria-selected="true">Photo Fixer</button>
+<button class="tab" data-tab="pdf" role="tab" aria-selected="false">Images to PDF</button>
+</div>
+<section id="photo" class="panel">
+<h2>Resize & compress a photo</h2><p>Choose a photo, set dimensions and a target size, then download the result.</p>
+<label for="photoFile">Choose image</label><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp">
+<div class="row">
+<div><label for="width">Width (pixels)</label><input id="width" type="number" min="1" max="10000" value="413"></div>
+<div><label for="height">Height (pixels)</label><input id="height" type="number" min="1" max="10000" value="531"></div>
+</div>
+<div class="row">
+<div><label for="targetKB">Target file size (KB, approximate)</label><input id="targetKB" type="number" min="5" max="10000" value="200"></div>
+<div><label for="format">Output format</label><select id="format"><option value="image/jpeg">JPG (usually smaller)</option><option value="image/png">PNG</option></select></div>
+</div>
+<label><input id="keepRatio" type="checkbox" checked style="width:auto"> Keep original proportions (fit inside dimensions)</label>
+<button id="makePhoto" class="btn" disabled>Resize & compress</button>
+<div id="photoStatus" class="status hidden" aria-live="polite"></div><img id="photoPreview" class="preview hidden" alt="Processed photo preview"><a id="photoDownload" class="btn hidden" download="easyform-photo.jpg">Download photo</a>
+</section>
+<section id="pdf" class="panel hidden">
+<h2>Convert images to PDF</h2><p>Select one or more images. They will be placed into a single PDF in the order shown by your phone's file picker.</p>
+<label for="pdfFiles">Choose images</label><input id="pdfFiles" type="file" accept="image/*" multiple>
+<ul id="pdfFileList" class="filelist"></ul>
+<div class="row">
+<div><label for="pageSize">PDF page size</label><select id="pageSize"><option value="a4">A4</option><option value="letter">Letter</option></select></div>
+<div><label for="orientation">Page orientation</label><select id="orientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+</div>
+<button id="makePdf" class="btn" disabled>Create PDF</button><div id="pdfStatus" class="status hidden" aria-live="polite"></div><a id="pdfDownload" class="btn hidden" download="easyform-images.pdf">Download PDF</a>
+<p class="small">Note: this starter version converts images to PDF. It does not yet compress existing PDF files.</p>
+</section>
+<section class="panel"><h2>About this tool</h2><p>EasyForm Tools is a starter utility website. Always check the exact photo dimensions and file-size rules listed by the job portal, university or application form you are using.</p></section>
+</main>
+<footer>EasyForm Tools · Free browser-based utilities</footer>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
+ document.querySelectorAll('.tab').forEach(b=>{b.classList.toggle('active',b===btn);b.setAttribute('aria-selected',b===btn?'true':'false')});
+ document.querySelectorAll('main section[id]').forEach(s=>s.classList.toggle('hidden',s.id!==btn.dataset.tab));
+}));
+let photoUrl=null,pdfUrl=null,selectedPhoto=null;
+$('photoFile').addEventListener('change',()=>{
+ selectedPhoto=$('photoFile').files[0]||null;$('makePhoto').disabled=!selectedPhoto;
+ $('photoStatus').classList.add('hidden');$('photoPreview').classList.add('hidden');$('photoDownload').classList.add('hidden');
+ if(selectedPhoto&&!selectedPhoto.type.startsWith('image/')){selectedPhoto=null;$('makePhoto').disabled=true}
+});
+$('makePhoto').addEventListener('click',async()=>{
+ if(!selectedPhoto)return;
+ const w=Math.max(1,Math.min(10000,Number($('width').value)||413));
+ const h=Math.max(1,Math.min(10000,Number($('height').value)||531));
+ const target=Math.max(5,Math.min(10000,Number($('targetKB').value)||200))*1024;
+ const type=$('format').value;
+ const status=$('photoStatus');status.classList.remove('hidden');status.textContent='Processing…';
+ try{
+  const img=new Image();const sourceUrl=URL.createObjectURL(selectedPhoto);
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=sourceUrl});
+  const canvas=document.createElement('canvas');let outW=w,outH=h;
+  if($('keepRatio').checked){const scale=Math.min(w/img.naturalWidth,h/img.naturalHeight);outW=Math.max(1,Math.round(img.naturalWidth*scale));outH=Math.max(1,Math.round(img.naturalHeight*scale))}
+  canvas.width=outW;canvas.height=outH;const ctx=canvas.getContext('2d');
+  if(type==='image/jpeg'){ctx.fillStyle='#fff';ctx.fillRect(0,0,outW,outH)}
+  ctx.drawImage(img,0,0,outW,outH);URL.revokeObjectURL(sourceUrl);
+  let quality=.92;let blob=await new Promise(r=>canvas.toBlob(r,type,quality));
+  while(type==='image/jpeg'&&blob&&blob.size>target&&quality>.25){quality-=.08;blob=await new Promise(r=>canvas.toBlob(r,type,quality))}
+  if(!blob)throw new Error('This image format could not be processed. Try JPG or PNG.');
+  if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=URL.createObjectURL(blob);
+  $('photoPreview').src=photoUrl;$('photoPreview').classList.remove('hidden');
+  $('photoDownload').href=photoUrl;$('photoDownload').download='easyform-photo.'+(type==='image/png'?'png':'jpg');$('photoDownload').classList.remove('hidden');
+  status.textContent=`Done! Output: ${outW} × ${outH} pixels; ${(blob.size/1024).toFixed(1)} KB.${blob.size>target?' The target size could not be reached at acceptable quality, so the result is larger than requested.':''}`;
+ }catch(e){status.textContent='Could not process this image. Try another JPG or PNG file. Details: '+e.message}
+});
+$('pdfFiles').addEventListener('change',()=>{
+ const files=Array.from($('pdfFiles').files).filter(f=>f.type.startsWith('image/'));
+ $('makePdf').disabled=!files.length;$('pdfFileList').replaceChildren();
+ files.forEach(f=>{const li=document.createElement('li');li.textContent=`${f.name} (${(f.size/1024).toFixed(0)} KB)`;$('pdfFileList').appendChild(li)});
+ $('pdfStatus').classList.add('hidden');$('pdfDownload').classList.add('hidden');
+});
+$('makePdf').addEventListener('click',async()=>{
+ const files=Array.from($('pdfFiles').files).filter(f=>f.type.startsWith('image/'));
+ const status=$('pdfStatus');status.classList.remove('hidden');status.textContent='Creating PDF…';
+ try{
+  if(!window.jspdf)throw new Error('PDF library did not load. Check your internet connection and refresh the page.');
+  const orient=$('orientation').value;const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:orient,unit:'mm',format:$('pageSize').value,compress:true});
+  for(let i=0;i<files.length;i++){
+   if(i)doc.addPage($('pageSize').value,orient);
+   const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(files[i])});
+   const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=data});
+   const pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight(),margin=8;
+   const scale=Math.min((pageW-2*margin)/img.width,(pageH-2*margin)/img.height);
+   const iw=img.width*scale,ih=img.height*scale;
+   doc.addImage(data,files[i].type==='image/png'?'PNG':'JPEG',(pageW-iw)/2,(pageH-ih)/2,iw,ih,undefined,'FAST');
+  }
+  const blob=doc.output('blob');if(pdfUrl)URL.revokeObjectURL(pdfUrl);pdfUrl=URL.createObjectURL(blob);
+  $('pdfDownload').href=pdfUrl;$('pdfDownload').classList.remove('hidden');status.textContent=`PDF ready! ${(blob.size/1024).toFixed(1)} KB`;
+ }catch(e){status.textContent='Could not create PDF. Try fewer or smaller images. '+e.message}
+});
+</script>
+</body></html>
